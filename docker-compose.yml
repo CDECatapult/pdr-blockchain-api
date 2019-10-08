@@ -1,0 +1,11 @@
+version: "3"
+services:
+  pdr-blockchain-api:
+    build: .
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
