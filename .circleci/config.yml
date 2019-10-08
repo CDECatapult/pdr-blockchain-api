@@ -1,0 +1,104 @@
+version: 2
+jobs:
+  test:
+    docker:
+      - image: circleci/node:10
+    steps:
+      - checkout
+
+      - restore_cache:
+          name: Restore node_modules cache
+          keys:
+            - v1-node-{{ arch }}-{{ .Branch }}-{{ checksum "yarn.lock" }}
+            - v1-node-{{ arch }}-{{ .Branch }}-
+            - v1-node-{{ arch }}-
+
+      - run:
+          name: Install Packages
+          command: yarn --frozen-lockfile --non-interactive
+
+      - save_cache:
+          name: Save node_modules cache
+          key: v1-node-{{ arch }}-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          paths:
+            - node_modules
+
+      - run:
+          name: Lint javascript files
+          command: yarn lint
+
+      # - run:
+      #     name: Run tests
+      #     command: yarn test
+
+
+  docker-build:
+    docker:
+      - image: docker:18.01.0-ce-git
+    steps:
+      - checkout
+
+      - setup_remote_docker
+
+      - run:
+          name: Login to docker
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+
+      - run:
+          name: Build the docker image
+          command: |
+            docker build -t pdr-blockchain-api .
+
+      - run:
+          name: Tag the docker image
+          command: |
+            docker tag pdr-blockchain-api digicatsynch/pdr-blockchain-api:$CIRCLE_SHA1
+            docker tag pdr-blockchain-api digicatsynch/pdr-blockchain-api:ci-$CIRCLE_BUILD_NUM
+            docker tag pdr-blockchain-api digicatsynch/pdr-blockchain-api:${CIRCLE_BRANCH##feature/}
+
+      - run:
+          name: Push the docker image
+          command: |
+            docker push digicatsynch/pdr-blockchain-api:$CIRCLE_SHA1
+            docker push digicatsynch/pdr-blockchain-api:ci-$CIRCLE_BUILD_NUM
+            docker push digicatsynch/pdr-blockchain-api:${CIRCLE_BRANCH##feature/}
+
+  release-version:
+    docker:
+      - image: docker:18.01.0-ce-git
+    steps:
+      - checkout
+
+      - setup_remote_docker
+
+      - run:
+          name: Login to docker
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+
+      - run:
+          name: Build the docker image
+          command: |
+            docker build -t digicatsynch/pdr-blockchain-api:${CIRCLE_TAG##v} .
+
+      - run:
+          name: Push the docker image
+          command: |
+            docker push digicatsynch/pdr-blockchain-api:${CIRCLE_TAG##v}
+workflows:
+  version: 2
+  logic-proxy:
+    jobs:
+      - test
+      - docker-build:
+          requires:
+            - test
+  tagged-build:
+    jobs:
+      - release-version:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
