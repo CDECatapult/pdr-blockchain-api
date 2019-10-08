@@ -56,6 +56,7 @@ jobs:
             docker tag pdr-blockchain-api digicatsynch/pdr-blockchain-api:$CIRCLE_SHA1
             docker tag pdr-blockchain-api digicatsynch/pdr-blockchain-api:ci-$CIRCLE_BUILD_NUM
             docker tag pdr-blockchain-api digicatsynch/pdr-blockchain-api:${CIRCLE_BRANCH##feature/}
+            [ "$CIRCLE_BRANCH" = "master" ] && docker tag pdr-blockchain-api digicatsynch/pdr-blockchain-api:latest
 
       - run:
           name: Push the docker image
@@ -63,6 +64,7 @@ jobs:
             docker push digicatsynch/pdr-blockchain-api:$CIRCLE_SHA1
             docker push digicatsynch/pdr-blockchain-api:ci-$CIRCLE_BUILD_NUM
             docker push digicatsynch/pdr-blockchain-api:${CIRCLE_BRANCH##feature/}
+            [ "$CIRCLE_BRANCH" = "master" ] && docker push digicatsynch/pdr-blockchain-api:latest
 
   release-version:
     docker:
@@ -88,13 +90,14 @@ jobs:
             docker push digicatsynch/pdr-blockchain-api:${CIRCLE_TAG##v}
 workflows:
   version: 2
-  logic-proxy:
+  git-push:
     jobs:
       - test
       - docker-build:
           requires:
             - test
-  tagged-build:
+
+  git-tag:
     jobs:
       - release-version:
           filters:
