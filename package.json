@@ -1,0 +1,24 @@
+{
+  "name": "pdr-blockchain-api",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "author": "Anthony Garcia <anthony.garcia@digicatapult.org.uk>",
+  "license": "MIT",
+  "scripts": {
+    "start": "NODE_ENV=production micro",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@hapi/joi": "^16.1.7",
+    "envalid": "^5.0.0",
+    "micro": "^9.3.4",
+    "nanoid": "^2.1.2",
+    "web3": "^1.2.1"
+  },
+  "devDependencies": {
+    "eslint": "^6.1.0",
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "prettier": "^1.18.2"
+  }
+}
