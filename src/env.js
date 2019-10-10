@@ -1,13 +1,8 @@
 const { cleanEnv, url } = require('envalid')
 
-const env = cleanEnv(
-  process.env,
-  {
-    ETHEREUM_NODE_ENDPOINT: url({ devDefault: 'http://localhost:8545' }),
-  },
-  {
-    strict: true,
-  }
-)
+const specs = {
+  BLOCKCHAIN_API_URL: url({ default: 'http://localhost:3042' }),
+  ETHERSCAN_ENDPOINT: url({ default: 'https://kovan.etherscan.io' }),
+}
 
-module.exports = env
+module.exports = cleanEnv(process.env, specs, { strict: true })

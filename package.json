@@ -12,9 +12,9 @@
   "dependencies": {
     "@hapi/joi": "^16.1.7",
     "envalid": "^5.0.0",
+    "got": "^9.6.0",
     "micro": "^9.3.4",
-    "nanoid": "^2.1.2",
-    "web3": "^1.2.1"
+    "nanoid": "^2.1.2"
   },
   "devDependencies": {
     "eslint": "^6.1.0",

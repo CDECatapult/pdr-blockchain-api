@@ -1,7 +1,15 @@
 const { json, send } = require('micro')
 const { URL } = require('url')
 const nanoid = require('nanoid')
+const got = require('got')
+const env = require('./env')
 const schema = require('./schema')
+
+const blockchain = got.extend({
+  baseUrl: env.BLOCKCHAIN_API_URL,
+  json: true,
+  form: true,
+})
 
 async function loadBlock(req, res) {
   const url = new URL(req.url, 'http://[::]')
@@ -13,10 +21,17 @@ async function loadBlock(req, res) {
   }
 
   console.info(req.requestId, 'Loading block...')
-  // TODO read tx from DB
-  const tx = `0x3b31f11f926e330c1e0fb34a0f9607ba2765ba76f23b797095812c41907114e5`
+  let tx
+  try {
+    const { body } = await blockchain.get(`hash?hash=${hash}`)
+    tx = body.transactionHash
+    console.info(`Block loaded:`, body)
+  } catch (err) {
+    console.error(`Could not load the block`, err)
+    return send(res, 520, { error: 'Could not load the block' })
+  }
 
-  res.setHeader('Location', `https://etherscan.io/tx/${tx}`)
+  res.setHeader('Location', `${env.ETHERSCAN_ENDPOINT}/tx/${tx}`)
   res.statusCode = 302
   res.end()
 }
@@ -41,8 +56,16 @@ async function createBlock(req, res) {
   console.info(req.requestId, 'Input validated')
 
   const { hash, date } = input
-  console.log('Storing to the blockchain...', hash, date)
-  // TODO actually store in blockchain...
+  console.log('Pushing to the blockchain...', hash, date)
+  try {
+    const { body } = await blockchain.post(`hash`, { body: { hash } })
+    console.info(
+      `Pushed to the blockchain, transactionHash: ${body.transactionHash}`
+    )
+  } catch (err) {
+    console.error(req.requestId, 'Failed to post to the blockchain', err)
+    return send(res, 400, { error: 'Failed to save to the blockchain' })
+  }
 
   return send(res, 204)
 }
