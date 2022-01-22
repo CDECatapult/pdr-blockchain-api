@@ -14,7 +14,7 @@
     "envalid": "^5.0.0",
     "got": "^9.6.0",
     "micro": "^9.3.4",
-    "nanoid": "^2.1.2"
+    "nanoid": "^3.1.31"
   },
   "devDependencies": {
     "eslint": "^6.1.0",
